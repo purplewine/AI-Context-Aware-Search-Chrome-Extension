@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Search</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+    <!-- Load styles -->
+    <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+    <nav class="navbar bg-primary">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">AI Context Aware Search</span>
+        </div>
+    </nav>
+    <br />
+    <div class="container">
+        <div id="notice" style="display:none; color:red; font-weight:bold; margin-top:8px;">
+            ⚠️ Connection lost. Please refresh the extension.
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h2>AI-Powered Context Search: Find Meaning, Not Keywords</h2>
+                <p id="loadind-text"></p>
+                <p>Semantic search powered by embeddings & cosine similarity.</p>
+
+                <br>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" placeholder="Search" aria-label="Search" id="searchInput"
+                        aria-describedby="search">
+                    <button class="btn btn-outline-secondary" type="button" id="search">Search</button>
+                </div>
+                <div id="searchResultList">
+                    <ul class="list-group">
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="./popup.js"></script>
+</body>
+
+</html>
