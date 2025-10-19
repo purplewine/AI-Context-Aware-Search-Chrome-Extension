@@ -17,27 +17,35 @@ init();
 
 async function init() {
     searchBtn.setAttribute("disabled", true);
-    const documents = await getPageContent();
-    const chunkedDoc = [];
-    for (let index = 0; index < documents.length; index++) {
-        const doc = documents[index];
-        if (doc.text.length <= MAX_CHUNK_LENGTH) {
-            chunkedDoc.push(doc);
-        } else {
-            const chunks = chunkParagraph(doc.text);
-            chunks.forEach(chunk => {
-                chunkedDoc.push({
-                    ...doc,
-                    text: chunk
-                });
-            });
-        }
-    }
-    console.log({ chunkedDoc });
+    const {documents, currentUrl} = await getPageContent();
+    if(getChunkedDocumentsInLocalStorage(currentUrl)) {
+        console.log("Using cached chunked documents from localStorage");
+        embeddings = getChunkedDocumentsInLocalStorage(currentUrl);
+        loadingElement.innerText = ""
 
-    const embeddingDocs = await createDocumentEmbedding(chunkedDoc);
-    embeddings = embeddingDocs.embeddings;
-    console.log({ embeddings });
+    } else {
+        const chunkedDoc = [];
+        for (let index = 0; index < documents.length; index++) {
+            const doc = documents[index];
+            if (doc.text.length <= MAX_CHUNK_LENGTH) {
+                chunkedDoc.push(doc);
+            } else {
+                const chunks = chunkParagraph(doc.text);
+                chunks.forEach(chunk => {
+                    chunkedDoc.push({
+                        ...doc,
+                        text: chunk
+                    });
+                });
+            }
+        }
+        console.log({ chunkedDoc });
+    
+        const embeddingDocs = await createDocumentEmbedding(chunkedDoc);
+        embeddings = embeddingDocs.embeddings;
+        setChunkedDocumentsInLocalStorage(currentUrl, embeddings);
+    }
+    
     searchBtn.removeAttribute("disabled")
 
 }
@@ -221,7 +229,11 @@ function getPageContent() {
                 console.error("popup: no active tab");
                 return;
             }
+            
             const tabId = tab.id;
+            var currentUrl = tab.url;
+            console.log({currentUrl});
+
             chrome.scripting.executeScript({
                 target: { tabId },
                 func: () => {
@@ -252,7 +264,7 @@ function getPageContent() {
                         htmlLength: document.documentElement.outerHTML.length,
                         robotsMeta: document.querySelector("meta[name='robots']")?.getAttribute("content") || null,
                         elements, // single array containing both paragraphs and headings in order
-                        document: document.documentElement
+                        document: document.documentElement,
                     };
                 }
             })
@@ -261,7 +273,7 @@ function getPageContent() {
                         results
                     });
 
-                    resolve(results?.[0]?.result.elements)
+                    resolve({ documents: results?.[0]?.result.elements, currentUrl });
                 }).catch(err => reject(err));
         })
     })
@@ -279,6 +291,20 @@ chrome.runtime.onMessage.addListener((message) => {
         }
     }
 });
+
+function getChunkedDocumentsInLocalStorage(currentUrl) {
+    const storageKey = `doc-embeddings-${currentUrl}`;
+    const storedData = localStorage.getItem(storageKey);
+    if (storedData) {
+        return JSON.parse(storedData);
+    }
+    return null;
+}
+function setChunkedDocumentsInLocalStorage(currentUrl, documents) {
+    const storageKey = `doc-embeddings-${currentUrl}`;
+    localStorage.setItem(storageKey, JSON.stringify(documents));
+}
+
 
 function chunkParagraph(text, maxWords = MAX_CHUNK_LENGTH, overlap = OVERLAP) {
     const words = text.split(/\s+/).filter(Boolean);
