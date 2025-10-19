@@ -2,6 +2,9 @@
 
 A Chrome extension that performs semantic search on webpage content using AI embeddings, powered by Transformers.js. It finds contextually relevant content beyond simple keyword matching.
 
+![](https://github.com/purplewine/AI-Context-Aware-Search-Chrome-Extension/blob/main/Screen%20Recording.gif)
+
+
 ## Features
 
 - 🔍 Semantic search using AI embeddings
